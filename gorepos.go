@@ -16,8 +16,11 @@ import (
 	"sync"
 )
 
+var host string
+
 func main() {
 	addr := flag.String("a", ":9090", "address to listen on (host:port)")
+	flag.StringVar(&host, "h", "localhost", "host to use, host/mylib")
 	pkgFile := flag.String("p", "", "package list")
 	help := flag.Bool("help", false, "print usage")
 
@@ -98,14 +101,14 @@ func (pl *PackageList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer pl.mx.RUnlock()
 	if r.URL.Path == "/" {
 		indexTmpl.Execute(w, map[string]interface{}{
-			"host": r.Host,
+			"host": host,
 			"pkgs": pl.packages,
 		})
 	} else {
 		if pkg, ok := pl.getPackage(r.URL.Path); ok {
 			if r.FormValue("go-get") == "1" || pkg.Doc == "" {
 				pkgTmpl.Execute(w, map[string]interface{}{
-					"host": r.Host,
+					"host": host,
 					"pkg":  pkg,
 				})
 			} else {
